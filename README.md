@@ -1,3 +1,34 @@
+## cleanyourtv-plus（本仓库说明）
+
+本仓库是 [CleanYourTV（Gathin23/cleanyourtv）](https://github.com/Gathin23/cleanyourtv) 的定制分支，在**原始内容基础上仅修改了默认配置**，目标是让中国区电视（尤其索尼 BRAVIA 国行）克隆后即可开箱即用，其余源码、文档与工具保持上游原样。
+
+### 原仓库简介
+
+[CleanYourTV](https://github.com/Gathin23/cleanyourtv) 是一个开源的智能电视极简桌面：通过 Wi-Fi ADB 把电视上带广告的原厂桌面替换成一个干净、类 Apple TV 风格的启动器。无需 Root、无需数据线、不卸载任何应用、一条命令即可还原。支持 293+ 电视型号、83 个品牌、28 种语言（截至 2026-10）。核心能力包括：只展示你实际安装的应用、自定义每行应用数量、可编辑程序坞（Dock）、壁纸主题（可轮播）、禁用系统遥测/广告/内容推荐组件（去广告），并可接管主页（Home）。
+
+### 本仓库相对原版的改动
+
+1. **默认每行 6 个应用**（原版默认 4 个）。修改 `launcher/app/src/main/res/values/config.xml` 中的 `columns`。
+2. **程序坞改为 6 个中国区常用应用**（原版为 Netflix / Amazon / YouTube / Hotstar，国行电视基本未安装这些应用，槽位会被网格应用自动填充）：
+
+   | 顺序 | 应用 | 包名 |
+   |---|---|---|
+   | 1 | 极空间 | `com.zentraedi.zspace.tv` |
+   | 2 | NewTV极光（腾讯视频 TV 版） | `com.ktcp.tvvideo` |
+   | 3 | 云视听小电视（Bilibili TV 版） | `com.xiaodianshi.tv.yst` |
+   | 4 | 奇异果TV（爱奇艺 TV 版） | `com.gitvdemo.video` |
+   | 5 | 酷喵（优酷 TV 版） | `com.cibn.tv` |
+   | 6 | 生活空间装饰（索尼国行预装 Living Decor） | `com.sony.dtv.livingfit` |
+
+3. **新增 `SONY-CONFIG.md`**：记录索尼 XR-65X90K（BRAVIA VH21，国行）实机验证的完整配置——每行 6 个、上述程序坞顺序、9 个已禁用的系统组件（遥测/演示/内容推荐）、壁纸设置与恢复方法等，便于其他型号参考或回滚。
+4. **壁纸主题**：建议配合仓库自带 `themes/scenes`（14 张暗色风景、每小时轮播）使用，推主题后在电视端「长按设置 → 简洁桌面设置 → 壁纸」即可直接切换，无需电脑。
+
+> 提示：程序坞中未安装的应用会被自动跳过，空槽位由网格应用填充（`fill_dock`），不会留空；换到其他电视型号也能正常显示。
+
+> 与原版的差异仅此一处配置文件 + 一份说明文档，可随时 `git fetch upstream && git merge upstream/main` 跟进上游更新。
+
+---
+
 <p align="center">
   <a href="https://cleanyour.tv"><img src="https://raw.githubusercontent.com/Gathin23/cleanyourtv/main/docs/banner.png" alt="CleanYourTV. Your TV, minus the ads. Strip the bloatware from any Android TV or Google TV over Wi-Fi and replace the ad-filled home screen with a clean launcher that looks like an Apple TV. No root, no cable, nothing uninstalled, and a one-line restore." width="800"></a>
 </p>
