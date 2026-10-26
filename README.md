@@ -2,16 +2,6 @@
 
 本仓库是 [CleanYourTV（Gathin23/cleanyourtv）](https://github.com/Gathin23/cleanyourtv) 的定制分支，面向中国区电视（小米澎湃 OS / 索尼 BRAVIA 国行）做了开箱即用的改造，其余源码、文档与工具保持上游原样。
 
-### 效果对比
-
-![程序坞前后对比：默认黑框 → 半透明](docs/xiaomi/dock-before-after.png)
-
-左侧为默认程序坞（黑色实底），右侧为本仓库定制后的半透明程序坞（透明度可在电视端 100 / 70 / 50 / 30 四档调整，默认 50%），图标浮在壁纸之上。
-
-![小米澎湃 OS：按 Home 键直达极简桌面](docs/xiaomi/home-key.png)
-
-小米澎湃 OS 强制禁止第三方应用设为默认桌面，本仓库通过无障碍服务实现「按 Home 键直达极简桌面」，实测可用（配置方法见下文「小米澎湃 OS 配置」）。
-
 ### 本仓库相对原版的改动
 
 1. **默认每行 6 个应用**（原版默认 4 个，电视端可在 4–7 之间调整）。修改 `launcher/app/src/main/res/values/config.xml` 中的 `columns`。
