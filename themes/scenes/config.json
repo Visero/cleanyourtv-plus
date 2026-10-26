@@ -1,4 +1,5 @@
 {
   "wallpaper": true,
-  "wallpaper_rotation_minutes": 60
+  "wallpaper_rotation_minutes": 60,
+  "dock_opacity": 35
 }
