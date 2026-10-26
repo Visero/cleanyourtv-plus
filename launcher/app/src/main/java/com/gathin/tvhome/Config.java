@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,6 +44,11 @@ final class Config {
     static final String ROWS_BELOW_DOCK_KEY = "rows_below_dock";
     static final String WALLPAPER_CHOICE_KEY = "wallpaper_choice";
     static final String DOCK_OPACITY_KEY = "dock_opacity";
+    /** The TV's wallpaper mode, from the 壁纸设置 menu: {@link #WALLPAPER_MODE_THEME}, {@link #WALLPAPER_MODE_VIDEO} or {@link #WALLPAPER_MODE_NONE}. */
+    static final String WALLPAPER_MODE_KEY = "wallpaper_mode";
+    static final String WALLPAPER_MODE_THEME = "theme";
+    static final String WALLPAPER_MODE_VIDEO = "video";
+    static final String WALLPAPER_MODE_NONE = "none";
     /**
      * Counts the changes made in Launcher settings. Home remembers the count it was built with and rebuilds on
      * resume when it differs, however the settings were left (see MainActivity#onResume).
@@ -215,6 +221,10 @@ final class Config {
     final int cinematicScrim;
     /** A rotating collection's groups by time of day, as file names (config.xml, wallpaper_moods); empty rotates through all of it. */
     final Map<String, Set<String>> wallpaperMoods;
+    /** The TV's wallpaper mode (launcher settings, 壁纸设置): theme rotation, a looping video, or off. */
+    final String wallpaperMode;
+    /** A theme's looping video wallpaper (config.json, wallpaper_video), or null when the theme has none. */
+    final File wallpaperVideo;
     /** Shape of the glow behind the focused app (config.xml, glow_style): {@link #GLOW_RADIAL} or {@link #GLOW_HORIZON}. */
     final String glowStyle;
     /** The focus highlight's look (config.xml, glass_style): {@link #GLASS_DEFAULT}, {@link #GLASS_RIM} or {@link #GLASS_HALO}. */
@@ -260,7 +270,7 @@ final class Config {
                    List<RaceWeekend.Race> raceCalendar, boolean cinematicHome, boolean ambientGlow, boolean appGlow, boolean fadeRows, int homeIdleClockMinutes,
                    boolean keyFilter, boolean dockGlass, String glowStyle, boolean wallpaperCaptions,
                    boolean handleViewInputs, boolean tileMenu, boolean dockEvenPadding, boolean dockBand, boolean cinematicDots, boolean cinematicWhiteFocus, boolean wifiStatusColor, int cinematicScrim, int cinematicArt,
-                   Map<String, Set<String>> wallpaperMoods, boolean gamepadPassthrough, boolean consumeVolumeKeys, boolean powerOnHome, boolean wifiStatusWarnings, List<String> topBarApps, boolean showGreeting, boolean headerWhite, boolean clockWallpaper, int clockWallpaperDim, boolean clockGlow, String glassStyle, boolean singleRow, boolean dockBandAll, boolean lunarDate, int lunarUtcOffset, boolean dateBelowClock) {
+                   Map<String, Set<String>> wallpaperMoods, boolean gamepadPassthrough, boolean consumeVolumeKeys, boolean powerOnHome, boolean wifiStatusWarnings, List<String> topBarApps, boolean showGreeting, boolean headerWhite, boolean clockWallpaper, int clockWallpaperDim, boolean clockGlow, String glassStyle, boolean singleRow, boolean dockBandAll, boolean lunarDate, int lunarUtcOffset, boolean dateBelowClock, String wallpaperMode, File wallpaperVideo) {
         this.handleViewInputs = handleViewInputs;
         this.tileMenu = tileMenu;
         this.inputKeycodes = inputKeycodes;
@@ -347,6 +357,8 @@ final class Config {
         this.cinematicArt = cinematicArt;
         this.cinematicScrim = cinematicScrim;
         this.wallpaperMoods = wallpaperMoods;
+        this.wallpaperMode = wallpaperMode;
+        this.wallpaperVideo = wallpaperVideo;
         this.gamepadPassthrough = gamepadPassthrough;
         this.consumeVolumeKeys = consumeVolumeKeys;
         this.powerOnHome = powerOnHome;
@@ -596,7 +608,7 @@ final class Config {
         if (!wallpaperEnabled) wallpaper = null;
         int rotationMinutes = json == null ? 0 : integer(json, "wallpaper_rotation_minutes", 0, 0, 1440);
         int wallpaperDim = json == null ? 0 : integer(json, "wallpaper_dim", 0, 0, 90);
-        int dockOpacity = json == null ? 100 : integer(json, "dock_opacity", 100, 30, 100);
+        int dockOpacity = json == null ? 50 : integer(json, "dock_opacity", 50, 30, 100);
         dockOpacity = chosenDockOpacity(choices.getInt(DOCK_OPACITY_KEY, -1), dockOpacity);
         String wallpaperOrder = json == null ? WallpaperRotation.ORDER_SHUFFLE
                 : string(json, "wallpaper_order", WallpaperRotation.ORDER_SHUFFLE);
@@ -618,6 +630,26 @@ final class Config {
             wallpaper = chosen.isEmpty() ? null : chosen.get(0);
             wallpaperEnabled = !chosen.isEmpty();
         }
+        // A theme can supply a looping video wallpaper (config.json, wallpaper_video); the TV switches to it
+        // from the 壁纸设置 menu. A mode without a usable video falls back to the theme's rotation below.
+        File wallpaperVideo = null;
+        String videoPath = json == null ? null : string(json, "wallpaper_video", "");
+        if (videoPath != null && !videoPath.trim().isEmpty() && dir != null) {
+            File videoFile = new File(dir, videoPath);
+            String lower = videoFile.getName().toLowerCase(Locale.ROOT);
+            if (videoFile.isFile() && videoFile.length() > 0 && videoFile.length() <= 300L * 1024 * 1024
+                    && (lower.endsWith(".mp4") || lower.endsWith(".webm"))) {
+                wallpaperVideo = videoFile;
+            }
+        }
+        String wallpaperMode = choices.getString(WALLPAPER_MODE_KEY, WALLPAPER_MODE_THEME);
+        if (!WALLPAPER_MODE_THEME.equals(wallpaperMode) && !WALLPAPER_MODE_VIDEO.equals(wallpaperMode)
+                && !WALLPAPER_MODE_NONE.equals(wallpaperMode)) wallpaperMode = WALLPAPER_MODE_THEME;
+        if (WALLPAPER_MODE_NONE.equals(wallpaperMode)) {
+            wallpapers.clear();
+            wallpaper = null;
+            wallpaperEnabled = false;
+        }
         // A festive skin comes only from a theme; config.xml has no festival.
         Festival festival = json == null ? Festival.NONE : Festival.parse(string(json, "festival", ""),
                 string(json, "festival_until", ""), string(json, "greeting", ""), string(json, "accent_color", ""));
@@ -635,7 +667,7 @@ final class Config {
                 dockBand, cinematicDots, cinematicWhiteFocus, wifiStatusColor, cinematicScrim, cinematicArt, wallpaperMoods, gamepadPassthrough,
                 consumeVolumeKeys, powerOnHome, wifiStatusWarnings, topBarApps, showGreeting, headerWhite, clockWallpaper,
                 Math.max(0, Math.min(90, clockWallpaperDim)), clockGlow, glassStyle, singleRow && dockRow, dockBandAll, lunar, lunarOffset,
-                dateBelowClock);
+                dateBelowClock, wallpaperMode, wallpaperVideo);
     }
 
     /**

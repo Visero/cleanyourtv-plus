@@ -1,5 +1,10 @@
 {
   "wallpaper": true,
   "wallpaper_rotation_minutes": 60,
-  "dock_opacity": 35
+  "dock_opacity": 50,
+  "wallpaper_moods": {
+    "morning": ["02-golden-coast.jpg", "05-dunes.jpg", "06-above-the-clouds.jpg", "09-alpenglow.jpg", "11-balloon-sunrise.jpg", "14-autumn-valley.jpg"],
+    "evening": ["01-dusk-peaks.jpg", "04-aurora.jpg", "07-mirror-lake.jpg", "08-tea-hills.jpg", "13-lighthouse-coast.jpg"],
+    "night": ["03-moon-lake.jpg", "10-city-lights.jpg", "12-monsoon.jpg"]
+  }
 }

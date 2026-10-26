@@ -56,6 +56,11 @@
     <string name="wallpaper_none">None</string>
     <string name="wallpaper_applied">Wallpaper changed</string>
     <string name="wallpaper_theme_default">Theme default</string>
+    <string name="wallpaper_settings">Wallpaper settings</string>
+    <string name="wallpaper_mode_theme">Theme wallpaper</string>
+    <string name="wallpaper_mode_video">Dynamic video wallpaper</string>
+    <string name="wallpaper_mode_none">No wallpaper</string>
+    <string name="wallpaper_no_video">This theme has no video wallpaper</string>
     <string name="animations_state">Animations: %1$s</string>
     <string name="advanced_effects">Advanced effects</string>
     <string name="advanced_effects_state">Advanced effects: %1$s</string>

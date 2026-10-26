@@ -3,6 +3,7 @@ package com.gathin.tvhome;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -3174,6 +3175,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         PopupWindow popup = glassPopup(panel, (int) (200 * density));
         if (!launcherSettingsButton) addSettingsMenuRow(rows, popup, R.string.launcher_settings, () -> startActivityForResult(
                 new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST));
+        addSettingsMenuRow(rows, popup, R.string.wallpaper_settings, this::showWallpaperSettings);
         // Firmware that ships its own settings app next to the AOSP one (Xiaomi China is one): the
         // vendor app holds pages the AOSP settings has no row for, such as Account & Security with
         // the ADB switch. Offered here only while one of them is installed.
@@ -3192,6 +3194,44 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         dropIn(popup, panel, anchor, getResources().getBoolean(R.bool.rtl_menu_bar)
                 ? Gravity.START : Gravity.END);
         rows.getChildAt(0).requestFocus();
+    }
+
+    /**
+     * 壁纸设置 (long-press the gear): the TV's wallpaper mode — the theme's rotation (time-of-day aware when the
+     * theme defines wallpaper_moods), a looping video wallpaper from the theme (wallpaper_video), or none at all.
+     * The mode lives in launcher_settings, read by Config on the next build; the video row needs the current
+     * theme to actually ship a video.
+     */
+    private void showWallpaperSettings() {
+        Config cfg = Config.load(this);
+        boolean hasVideo = cfg.wallpaperVideo != null;
+        String current = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE)
+                .getString(Config.WALLPAPER_MODE_KEY, Config.WALLPAPER_MODE_THEME);
+        String videoLabel = hasVideo ? getString(R.string.wallpaper_mode_video)
+                : getString(R.string.wallpaper_mode_video) + "（" + getString(R.string.wallpaper_no_video) + "）";
+        String[] labels = {getString(R.string.wallpaper_mode_theme), videoLabel,
+                getString(R.string.wallpaper_mode_none)};
+        int checked = Config.WALLPAPER_MODE_VIDEO.equals(current) ? 1
+                : Config.WALLPAPER_MODE_NONE.equals(current) ? 2 : 0;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.wallpaper_settings)
+                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
+                    dialog.dismiss();
+                    if (which == 1 && !hasVideo) {
+                        Toast.makeText(this, R.string.wallpaper_no_video, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    SharedPreferences.Editor editor = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).edit();
+                    if (which == 1) editor.putString(Config.WALLPAPER_MODE_KEY, Config.WALLPAPER_MODE_VIDEO);
+                    else if (which == 2) editor.putString(Config.WALLPAPER_MODE_KEY, Config.WALLPAPER_MODE_NONE)
+                            .putString(Config.WALLPAPER_CHOICE_KEY, WallpaperRotation.CHOICE_NONE);
+                    else editor.putString(Config.WALLPAPER_MODE_KEY, Config.WALLPAPER_MODE_THEME);
+                    editor.apply();
+                    Toast.makeText(this, R.string.wallpaper_applied, Toast.LENGTH_SHORT).show();
+                    recreate();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     /**

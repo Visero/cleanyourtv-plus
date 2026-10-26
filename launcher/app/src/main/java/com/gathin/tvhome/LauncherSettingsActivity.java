@@ -178,17 +178,20 @@ public final class LauncherSettingsActivity extends Activity {
                 .setSingleChoiceItems(labels, checked, (dialog, which) -> {
                     dialog.dismiss();
                     if (which == images.size()) {
-                        choices.edit().putString(Config.WALLPAPER_CHOICE_KEY, "none").apply();
+                        choices.edit().putString(Config.WALLPAPER_CHOICE_KEY, "none")
+                                .putString(Config.WALLPAPER_MODE_KEY, Config.WALLPAPER_MODE_NONE).apply();
                     } else {
                         choices.edit().putString(Config.WALLPAPER_CHOICE_KEY,
-                                images.get(which).getName()).apply();
+                                images.get(which).getName())
+                                .putString(Config.WALLPAPER_MODE_KEY, Config.WALLPAPER_MODE_THEME).apply();
                     }
                     changed();
                     Toast.makeText(this, R.string.wallpaper_applied, Toast.LENGTH_SHORT).show();
                     refresh();
                 })
                 .setNeutralButton(R.string.wallpaper_theme_default, (dialog, which) -> {
-                    choices.edit().remove(Config.WALLPAPER_CHOICE_KEY).apply();
+                    choices.edit().remove(Config.WALLPAPER_CHOICE_KEY)
+                            .remove(Config.WALLPAPER_MODE_KEY).apply();
                     changed();
                     refresh();
                 })

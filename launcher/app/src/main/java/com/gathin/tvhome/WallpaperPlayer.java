@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -15,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -33,6 +35,8 @@ import java.util.concurrent.Executors;
 final class WallpaperPlayer {
     private final FrameLayout root;
     private final ImageView image;
+    /** A theme's looping video wallpaper (壁纸设置 → 动态视频壁纸), or null for the static rotation. */
+    private final VideoView video;
     private final int backgroundColor;
     private final List<File> files;
     private final long interval;
@@ -91,6 +95,26 @@ final class WallpaperPlayer {
         names = config.wallpaperCaptions && config.wallpaperEnabled && !files.isEmpty()
                 ? WallpaperCaptions.read(files.get(0).getParentFile()) : Collections.emptyMap();
         caption = names.isEmpty() ? null : makeCaption(context, root);
+        // 动态视频壁纸: the theme's wallpaper_video loops behind the launcher instead of the rotation.
+        if (Config.WALLPAPER_MODE_VIDEO.equals(config.wallpaperMode) && config.wallpaperVideo != null) {
+            video = new VideoView(context);
+            video.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            root.addView(video, 0, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            video.setVideoURI(Uri.fromFile(config.wallpaperVideo));
+            video.setOnPreparedListener(player -> {
+                player.setLooping(true);
+                player.setVolume(0f, 0f);
+                if (active) video.start();
+            });
+            video.setOnErrorListener((player, what, extra) -> {
+                Log.w("TvHome.Wallpaper", "Video wallpaper error: " + what + "/" + extra);
+                video.setVisibility(View.GONE);
+                return true;
+            });
+            return;
+        }
+        video = null;
         if (config.wallpaperEnabled && !files.isEmpty()) {
             root.addView(image, 0, new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -130,15 +154,21 @@ final class WallpaperPlayer {
 
     void start() {
         active = true;
+        if (video != null) {
+            if (!video.isPlaying()) video.start();
+            return;
+        }
         update();
     }
 
     void stop() {
         active = false;
+        if (video != null && video.isPlaying()) video.pause();
     }
 
     /** Drops the wallpaper texture when Home is hidden and Android asks the process to free memory. */
     void releaseForMemoryPressure() {
+        if (video != null) return;
         if (current == null) return;
         image.setImageDrawable(null);
         // The renderer may still have a queued frame that references this hardware bitmap. Drop our references and
@@ -162,6 +192,7 @@ final class WallpaperPlayer {
     void close() {
         active = false;
         closed = true;
+        if (video != null) video.stopPlayback();
         decoder.shutdownNow();
     }
 

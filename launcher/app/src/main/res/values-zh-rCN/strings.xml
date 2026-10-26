@@ -15,6 +15,11 @@
     <string name="wallpaper_none">无</string>
     <string name="wallpaper_applied">壁纸已更改</string>
     <string name="wallpaper_theme_default">主题默认</string>
+    <string name="wallpaper_settings">壁纸设置</string>
+    <string name="wallpaper_mode_theme">主题壁纸</string>
+    <string name="wallpaper_mode_video">动态视频壁纸</string>
+    <string name="wallpaper_mode_none">关闭壁纸</string>
+    <string name="wallpaper_no_video">当前主题没有视频壁纸</string>
     <string name="animations_state">动态效果：%1$s</string>
     <string name="advanced_effects">高级动态效果</string>
     <string name="advanced_effects_state">高级动态效果：%1$s</string>
