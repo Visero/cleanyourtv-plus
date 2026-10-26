@@ -92,10 +92,13 @@
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <!-- Listed in the TV's own app list, so it can be opened from the stock home screen too. -->
+            <!-- Listed in the TV's own app list, so it can be opened from the stock home screen too.
+                 LAUNCHER added for China-market HyperOS (PatchWall) whose app grid queries the plain
+                 LAUNCHER category; without it the app never appears in the stock app list. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
